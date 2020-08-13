@@ -2,11 +2,14 @@ var draw = (function() {
 
   //Get the height and width of the main we will use this set canvas to the full
   //size of the main element.
-  var mWidth = document.querySelector('main').offsetWidth,
+  var 
+    mWidth = document.querySelector('main').offsetWidth,
     mHeight = document.querySelector('main').offsetHeight,
+    // mWidthx = $('main').offsetWidth,
+    // mHeightx = $('main').offsetHeight,
 
     //Create the canvas
-    canvas = document.createElement("canvas"),
+    canvas = document.createElement('canvas'),
 
     //Create the context
     ctx = canvas.getContext("2d"),
@@ -18,52 +21,40 @@ var draw = (function() {
     x=0,
     y=0;
 
-  //starting x,y
-  x1=0,
-  y1=0,
+    //starting x,y
+    x1=0,
+    y1=0,
 
-  //ending x,y
-  x2=0,
-  y2=0;
+    //ending x,y
+    x2=0,
+    y2=0,
 
-  //Tracks the last x,y state
-  lx = false,
-  ly = false,
+    //Tracks the last x,y state
+    lx = false,
+    ly = false,
 
-  //What shape are we drawing?
-  shape='';
+    // save whether in drawing process
+    isDrawing = false,
 
-  //Do we want to draw?
-  isDrawing=false;
+    // Width of the pen for lines
+    penWidth = 3,
 
-  //stroke color
-  var stroke='';
+    // When mouse down = true
+    //  mouse up = false
+    mouseDown = false;
 
-  //fill color
-  var fill='';
+    // If color is random - set a random for the fill and stroke
+    colorSw = true;
 
-  //Draw 3-point Triangle
-  var points = [];
-  var i = 0;
+    //What shape are we drawing?
+    shape ='';
+
+    //3 point variables
+    var points = [];
+    var i = 0;
+
 
   return {
-      //Set the x,y coords based on current event data
-      setXY: function(evt) {
-
-          //Track the last x,y position before setting the current position.
-          lx=x;
-          ly=y;
-      
-          //Set the current x,y position
-          x = (evt.clientX - rect.left) - canvas.offsetLeft;
-          y = (evt.clientY - rect.top) - canvas.offsetTop;
-      },
-  
-    //Write the x,y coods to the target div
-    writeXY: function() {
-      document.getElementById('trackX').innerHTML = 'X: ' + x;
-      document.getElementById('trackY').innerHTML = 'Y: ' + y;
-    },
 
     setStart: function() {
       x1=x;
@@ -75,8 +66,8 @@ var draw = (function() {
       y2=y;
     },
 
-  //Draw 3-point Triangle
-  setPoint: function(){
+    //Draw a three point triangle
+    setPoint: function(){
 
       points[i]=[];
       points[i]['x']=x;
@@ -88,166 +79,139 @@ var draw = (function() {
           points=[];
       }else{
           i++;
-      }        
-  },
-    
+      }
+      
+    },
+
+    //Set the x,y coords based on current event data
+    setXY: function(evt) {
+
+      //Track the last x,y position before setting the current position.
+      lx=x;
+      ly=y;
+
+      x = (evt.clientX - rect.left) - canvas.offsetLeft;
+      y = (evt.clientY - rect.top) - canvas.offsetTop;
+    },
+
+    //Write the x,y coods to the target div
+    writeXY: function() {
+      $('#trackX').text('X: ' + x);
+      $('#trackY').text('Y: ' + y);
+    },
+
+    getCanvas: function(){
+      return canvas;
+    },
+
     //Sets the shape to be drawn
     setShape: function(shp) {
-      shape = shp;
+        shape = shp;
+    },
+    getShape: function() {
+      return shape;
+    },
+    setColorSw: function( tOrF ){
+      colorSw = tOrF;
+    },
+    getColorSw: function( ){
+      return colorSw;
     },
 
-    //Set a random color
-    randColor: function(){
-      return '#' + Math.floor(Math.random()*16777215).toString(16);
-    },
 
-    //A setter for stroke
-    setStrokeColor: function(color){
-    stroke = color;
-    },
-
-    //A getter for stroke
-    getStrokeColor: function(){
-      if(stroke.length > 6){
-      return stroke;
-      }
-      return this.randColor();
-    },
-
-    //A setter for fill
-    setFillColor: function(color){
-      fill = color;
-    },
-
-    //A getter for fill
-    getFillColor: function(){
-      if(fill.length > 6){
-      return fill;
-      }
-      return this.randColor();
-    },
-  
-    setIsDrawing: function(bool) {
-    isDrawing = bool;
-    },
-    
-    getIsDrawing: function() {
-      return isDrawing;
-    },
-    
+    //Draws the selected shape
     draw: function() {
-      ctx.restore();
-      if(shape==='rectangle')
-      {
-        this.drawRect();
-      } else if(shape==='line') {
-        this.drawLine();
-      } else if(shape==='circle') {
-        this.drawCircle();
-      } else if(shape==='path') {
-        this.drawPath();
-      } else if(shape==='triangle') {
+
+        ctx.restore();
+
+        ctx.lineWidth = penWidth;
+        if(shape==='rectangle')
+        {
+          this.drawRect();
+          
+        } else if( shape==='line' ) {
+          
+          this.drawLine();
+
+        } else if( shape==='triangle' ) {
           this.drawTriangle();
-      } else if(shape==='3-point') {
+
+        } else if( shape==='3-point' ) {
           this.draw3Point();
-      } else {
-      alert('Please choose a shape');
+
+        } else if( shape==='isos' ) {
+          this.drawIsos();
+
+        } else if( shape==='circle' ) {
+          this.drawCircle();
+
+        } else if( shape==='path' ) {
+          this.drawPath();
+        
+        } else {
+          alert('Please choose a shape');
+        }
+        ctx.save();
+    },  // end draw funciton
+
+    setColor: function() {
+      if (this.getColorSw() === true){
+        ctx.strokeStyle = '#'+Math.floor(Math.random()*16777215).toString(16);
+        ctx.fillStyle = ctx.strokeStyle; 
       }
-      ctx.save();
+      else {
+        ctx.strokeStyle = document.getElementById('shapeColor').value;
+        ctx.fillStyle = document.getElementById('shapeColor').value;
+      }
     },
 
-      //Draw a rectangle
-      // drawRect: function(x,y,h,w) {
-      drawRect: function(){
-      ctx.strokeStyle = this.getStrokeColor();
-      //Start by using random fill colors.
-      ctx.fillStyle = this.getFillColor();
-      // ctx.fillStyle = '#'+Math.floor(Math.random()*16777215).toString(16);      
-      ctx.fillRect (x1,y1,(x2-x1),(y2-y1));
-      ctx.stroke();
-    },
+    //Draw a circle
+    drawCircle: function() {
+      this.setColor();
+      let a = (x1-x2)
+      let b = (y1-y2)
+      let radius = Math.sqrt( a*a + b*b );
 
-      //Draw a line
-      drawLine: function() {
-      //Start by using random fill colors.
-      // ctx.strokeStyle = '#'+Math.floor(Math.random()*16777215).toString(16);
-      ctx.strokeStyle = this.getStrokeColor();
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.stroke();
-    },
-
-      //Draw a circle
-      drawCircle: function() {
-          ctx.strokeStyle = this.getStrokeColor();
-          // ctx.strokeStyle = '#'+Math.floor(Math.random()*16777215).toString(16);
-          ctx.fillStyle = this.getFillColor();
-          // ctx.fillStyle = '#'+Math.floor(Math.random()*16777215).toString(16);
-      
-          let a = (x1-x2)
-          let b = (y1-y2)
-          let radius = Math.sqrt( a*a + b*b );
-      
-          ctx.beginPath();
-          ctx.arc(x1, y1, radius, 0, 2*Math.PI);
-          ctx.stroke();
-          ctx.fill();
-      },
-
-      //Draw a path
-      drawPath: function() {
-          //Start by using random fill colors.
-          ctx.strokeStyle = this.getStrokeColor();
-          // ctx.strokeStyle = '#'+Math.floor(Math.random()*16777215).toString(16);
-          ctx.beginPath();
-          ctx.moveTo(lx, ly);
-          ctx.lineTo(x, y);
-          ctx.stroke();
-      },
-
-    //Draw a triangle
-    drawTriangle: function(){
-
-      //x1,y1 to x2,y2 is the first line we will use the first point +/- 
-      //(depending on the direction of the mouse movement) the result of 
-      //PT to add a third point. 
-      var a = (x1-x2);
-      var b = (y1-y2);
-      var c = Math.sqrt(a*a + b*b);
-
-      var d = x1+c;
-      var e = y1+c;
-
-      //Drag left to right
-      if(x1>x2){
-          d=x1-c;
-      }
-
-      //Drag up
-      if(y1>y2){
-          e=y1-c;
-      }
-  
-      ctx.fillStyle = this.getFillColor();
-      ctx.strokeStyle = this.getStrokeColor();
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-
-      ctx.lineTo(d,e);
-      ctx.lineTo(x2, y2);
-
-      ctx.lineTo(x1, y1);
+      ctx.arc(x1, y1, radius, 0, 2*Math.PI);
       ctx.stroke();
       ctx.fill();
-  },
+    },
 
-      //Draw 3-point Triangle
-      draw3Point: function(){
 
-      ctx.fillStyle = this.getFillColor();
-      ctx.strokeStyle = this.getStrokeColor();
+    //Draw a line
+    drawLine: function() {
+      this.setColor();
+   
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    },
 
+    //Draw a rectangle
+    drawRect: function() {
+      this.setColor();
+
+      ctx.fillRect (x1,y1,(x2-x1),(y2-y1));
+    },
+
+    getCanvas: function(){
+      return canvas;
+    },
+
+    drawTriangle: function(){
+      this.setColor();
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.lineTo(x1, y2);
+      ctx.fill();
+    },
+
+    //Draw a 3-point triangle
+    draw3Point: function(){
+      this.setColor();
       ctx.beginPath();
 
       ctx.moveTo(points[0]['x'], points[0]['y']);
@@ -255,19 +219,39 @@ var draw = (function() {
       ctx.lineTo(points[2]['x'], points[2]['y']);
       ctx.lineTo(points[0]['x'], points[0]['y']);
 
-      ctx.stroke();
+      // ctx.stroke();
       ctx.fill();
-  },
+    },      
 
-      getShape: function() {
-      return shape;
-      },
-                
-      getCanvas: function(){
-          return canvas;
-      },
+    drawIsos: function(){
+      this.setColor();
 
-   
+      ctx.strokeStyle = document.getElementById('shapeColor').value;
+      ctx.fillStyle = document.getElementById('shapeColor').value;
+      ctx.beginPath();
+      if ( x2 > x1){
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.lineTo(x2+Math.abs(x2-x1), y1);
+      }
+      else{
+          ctx.moveTo(x1,y1);
+          ctx.lineTo(x2,y2);
+          ctx.lineTo(x2,y2+2*Math.abs(y1-y2));
+      }
+      ctx.fill(); 
+    },
+
+    drawPath: function(){
+      this.setColor();
+      if (mouseDown === true){
+
+      ctx.beginPath();
+      ctx.moveTo(lx, ly);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      }
+    },
 
 
     //Initialize the object, this must be called before anything else
@@ -275,8 +259,47 @@ var draw = (function() {
       canvas.width = mWidth;
       canvas.height = mHeight;
       document.querySelector('main').appendChild(canvas);
+      $('#trackX').text('X: ');
+      $('#trackY').text('Y: ');
+      $('#selShape').text('No Shape Selected');
+      mouseDown = false;  
+    },
 
+    // Reset the canvas object 
+    resetCanvas: function() {
+    if (confirm('Do You really want to clear Your canvas?') == true ){
+        lx=0;
+        ly=0;
+        x = 0;
+        y = 0;
+        mouseDown = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
+    },
+
+
+    // Prompt user for pen width within in a set boundary 
+    //  save it and display it.
+    lineWidth: function() {
+      var lW = prompt('Enter a number from 1 to 30\nto set the width of the line ');
+      if (lW >= 1 && lW <= 30 ){
+          penWidth = lW;
+          $('#btnLineWidth').text('Width = ' + penWidth);
+      }
+      },
+
+    setIsDrawing: function(bool) {
+      isDrawing = bool;
+    },
+    
+    getIsDrawing: function() {
+      return isDrawing;
+    },
+
+    setMouseDown: function( bool ){
+      mouseDown = bool;
+    }
+
   };
 
 })();
@@ -284,76 +307,147 @@ var draw = (function() {
 //Initialize draw
 draw.init();
 
-  document.getElementById('btnRect').addEventListener('click',function(){
-  draw.setShape('rectangle');
-  }, false);
-
-  document.getElementById('btnLine').addEventListener('click',function(){
-      draw.setShape('line');
-  }, false);
-
-  document.getElementById('btnCircle').addEventListener('click',function(){
-      draw.setShape('circle');
-  }, false);
-
-  document.getElementById('btnPath').addEventListener('click',function(){
-      draw.setShape('path');
-  }, false);
-
-  document.getElementById('btnTriangle').addEventListener('click',function(){
-      draw.setShape('triangle');
-  }, false);
-
-  document.getElementById('btn3Point').addEventListener('click', function(){
-      draw.setShape('3-point');
-    });
-    
 //Add a mousemove listener to the canvas
 //When the mouse reports a change of position use the event data to
 //set and report the x,y position on the mouse.
-draw.getCanvas().addEventListener('mousemove', function(evt) {
+$(draw.getCanvas()).mousemove( function(evt) {
+
+  draw.setXY(evt);
+  draw.writeXY();
+  if (draw.getShape()=='path'){
+    draw.draw();
+  }
+});
+
+//3-point Set the starting position
+// draw.getCanvas().addEventListener('mousedown', function(){
+  $(draw.getCanvas()).mousedown( function(evt) {
+    if(draw.getShape()!=='3-point'){
+      draw.setStart();
+      draw.setIsDrawing(true);
+  }
+});
+
+//Get the ending position
+// draw.getCanvas().addEventListener('mouseup', function(){
+  $(draw.getCanvas()).mouseup( function() {
+    if(draw.getShape()!=='3-point'){
+      draw.setEnd();
+      draw.draw();
+      draw.setIsDrawing(false);
+  }
+
+  if(draw.getShape()==='3-point'){
+      draw.setPoint();
+  }
+  });
+
+// draw.getCanvas().addEventListener('mousedown', function() {
+$(draw.getCanvas()).mousedown( function() {
+  draw.setMouseDown(true);
+  draw.setStart();
+});
+
+// draw.getCanvas().addEventListener('mouseup', function() {
+$(draw.getCanvas()).mouseup( function() {
+  draw.setMouseDown(false);
+  draw.setEnd();
+  draw.draw();
+});
+
+$(draw.getCanvas()).mousemove( function(evt) {
   draw.setXY(evt);
   draw.writeXY();
   if(draw.getShape()=='path' && draw.getIsDrawing()===true) {
     draw.draw();
   }
-}, false);
-    
-//Set the starting position
-draw.getCanvas().addEventListener('mousedown', function() {
-  //Draw 3-point Triangle
-  if(draw.getShape()!=='3-point'){
-  draw.setStart();
-  draw.setIsDrawing(true);
-  }
-}, false);
-
-draw.getCanvas().addEventListener('mouseup', function() {
-  //Draw 3-point Triangle
-  if(draw.getShape()!=='3-point'){
-  draw.setEnd();
-  draw.draw();
-  draw.setIsDrawing(false);
-  }
-  //Draw 3-point Triangle
-  if(draw.getShape()==='3-point'){
-  draw.setPoint();
-  }  
-}, false);
-
-document.getElementById('strokeColor').addEventListener('change', function(){
-  draw.setStrokeColor(document.getElementById('strokeColor').value);
 });
 
-document.getElementById('randStrokeColor').addEventListener('change', function(){
-draw.setStrokeColor('');
+$(function(){
+  $('#btnRect').on('click',function(){
+    $('#selShape').text('RECTANGLE');
+    draw.setShape('rectangle');
+  });
+
 });
 
-document.getElementById('fillColor').addEventListener('change', function(){
-draw.setFillColor(document.getElementById('fillColor').value);
+
+$(function(){
+  $('#btnLine').on('click',function(){
+    $('#selShape').text('LINE');
+    draw.setShape('line');
+  });
+
 });
-  
-document.getElementById('randFillColor').addEventListener('change', function(){
-draw.setFillColor('');
+
+//Draw a three point triangle
+$(function(){
+  $('#btn3Point').on('click',function(){
+    $('#selShape').text('3-point');
+    draw.setShape('3-point');
+  });
+
 });
-    
+
+
+$(function(){
+  $('#btnCircle').on('click',function(){
+    $('#selShape').text('CIRCLE');
+    draw.setShape('circle');
+  });
+
+});
+
+$(function(){
+  $('#btnTriangle').on('click',function(){
+    $('#selShape').text('TRIANGLE');
+    draw.setShape('triangle');
+  });
+
+});
+
+
+$(function(){
+  $('#btnIsos').on('click',function(){
+    $('#selShape').text('ISOSCELES TRIANGLE');
+    draw.setShape('isos');
+  });
+
+});
+
+$(function(){
+  $('#btnResetCanvas').on('click',function(){
+    draw.resetCanvas()
+  });
+
+});
+
+$(function(){
+  $('#btnLineWidth').on('click',function(){
+    draw.lineWidth();
+  });
+
+});
+
+$(function(){
+  $('#btnPath').on('click',function(){
+    $('#selShape').text('PATH');
+    draw.setShape('path');
+  });
+
+});
+
+$(function(){
+  $('#btnRandomColor').on('click',function(){
+    draw.setColorSw(true);
+  });
+
+});
+
+$(function(){
+  $('#btnSelColor').on('click',function(){
+  //  console.log('     ---  in btnbtnSelColor');
+    draw.setColorSw(false);
+  });
+
+});
